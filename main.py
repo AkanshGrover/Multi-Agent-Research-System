@@ -9,3 +9,5 @@ while True:
         break
 
     ans = agent.run(topic)
+
+    print(ans)

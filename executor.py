@@ -6,6 +6,9 @@ class Executor:
         pass
 
     def parse_json(self, text):
+        if text is None:
+            raise RuntimeError("LLM returned None (likely API failure)")
+    
         try:
             return json.loads(text)
         except json.JSONDecodeError:
@@ -16,8 +19,9 @@ class Executor:
             except Exception as e:
                 print("failed to parse")#probably ask the model to regenerate
 
-    def executePrompt(self, prompt):
-        llm_ans = call_llm(prompt)
-        f_ans = self.parse_json(llm_ans)#maybe add a way check whether the output reuqested before was in json or not
-        #add a way to understand json here, maybe add some way to add prompt to give output in a particular way
-        return f_ans
+    def executePrompt(self, system_prompt, user_prompt, temperature = 0.7, isJson = True):
+        llm_ans = call_llm(system_prompt, user_prompt, temperature)
+        if isJson:
+            return self.parse_json(llm_ans)
+        else:
+            return llm_ans
