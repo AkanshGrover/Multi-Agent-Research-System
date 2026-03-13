@@ -85,8 +85,8 @@ class Agent:
             if (assessment == "approved"):
                 return draft
             elif (assessment == "revision_needed"):
-                print(f"Retry depth: {depth} | restarting from stage {s_from}")
-                return self.run(topic, s_from=2, depth=depth+1, max_depth=max_depth)
+                print(f"Retry depth: {depth} | revising draft")
+                return self.run(topic, s_from=3, depth=depth+1, max_depth=max_depth)
             elif (assessment == "research_insufficient"):
                 print(f"Retry depth: {depth} | expanding research")
                 feedback = review.get("feedback", "")

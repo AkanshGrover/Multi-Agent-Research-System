@@ -158,6 +158,19 @@ Return a structured JSON object:
 
  "key_concepts": [],
 
+ "literature_sources": [
+   {{
+     "title": "",
+     "authors": [],
+     "year": "",
+     "main_contribution": "",
+     "methodology": "",
+     "limitations": ""
+   }}
+ ],
+
+ "methodologies": [],
+
  "research_findings": [
    {{
      "question": "",
@@ -166,6 +179,8 @@ Return a structured JSON object:
    }}
  ],
 
+ "comparative_insights": [],
+
  "important_systems_or_projects": [],
 
  "implementation_patterns": [],
@@ -173,6 +188,8 @@ Return a structured JSON object:
  "performance_considerations": [],
 
  "security_considerations": [],
+
+ "research_gaps": [],
 
  "emerging_trends": [],
 

@@ -1,6 +1,7 @@
 from google import genai
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 #boiler plate code replace it in future

@@ -12,7 +12,7 @@ class Executor:
         try:
             return json.loads(text)
         except json.JSONDecodeError:
-            print("JSON parsing failed")
+            print("JSON parsing failed, trying to clean it")
             cleaned = text.replace("```json", "").replace("```", "").strip()
             try:
                 return json.loads(cleaned)
