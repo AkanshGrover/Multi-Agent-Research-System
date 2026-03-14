@@ -1,4 +1,5 @@
 from docx import Document
+import re
 
 def convert_word(text, topic):
     doc = Document()
@@ -17,7 +18,7 @@ def convert_word(text, topic):
         elif line.startswith("Abstract"):
             doc.add_heading("Abstract", level=1)
 
-        elif line[0].isdigit() and " " in line:
+        elif re.match(r"^\d+\s+[A-Za-z]", line):
             doc.add_heading(line, level=1)
 
         elif line[:3].count(".") == 1:
@@ -25,6 +26,9 @@ def convert_word(text, topic):
 
         elif line.lower().startswith("references"):
             doc.add_heading("References", level=1)
+
+        elif re.match(r"^\[\d+\]", line):
+            doc.add_paragraph(line)
 
         else:
             doc.add_paragraph(line)

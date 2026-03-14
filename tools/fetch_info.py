@@ -116,7 +116,7 @@ class InfoFetcher:
 
         return posts
 
-    def fetch_arxiv(self, topic, limit = 10):
+    def fetch_arxiv(self, topic, limit = 20):
         search = arxiv.Search(
             query=topic,
             max_results=limit,

@@ -13,32 +13,6 @@ class Agent:
         self.writer = Writer()
         self.reflection = Reviewer()
 
-    # def run(self, topic, s_from="0"):
-    #     self.memory.add(f"Research topic: {topic}")
-
-    #     plan = self.planner.create_plan(topic)
-
-    #     self.memory.add(f"Plan created by the agent: \n{plan}")
-
-    #     researched_info = self.researcher.gather_research(topic, plan)
-
-    #     self.memory.add(f"Information gathered: \n{researched_info}")
-
-    #     draft = self.writer.write_paper(topic, plan, researched_info)
-
-    #     self.memory.add(f"Draft paper: \n{draft}")
-
-    #     review = self.reflection.review_paper(topic, plan, researched_info, draft)
-
-    #     self.memory.add(f"Review of the paper: \n{review}")
-
-    #     if (review == "approved"):
-    #         return draft
-    #     elif (review == "revision_needed"):
-    #         pass
-    #     elif (review == "research_insufficient"):
-    #         pass
-
     def run(self, topic, s_from=0, depth=0, max_depth=5):
         if depth >= max_depth:
             return "Stopped: too many retries"
@@ -71,7 +45,9 @@ class Agent:
                 researched_info = self.memory.get("researched_info")
                 if researched_info is None:
                     raise ValueError("Planner failed to produce researched_info")
-            draft = self.writer.write_paper(topic, plan, researched_info)
+            feedback = self.memory.get("review_feedback")
+            draft = self.writer.write_paper(topic, plan, researched_info, feedback)
+
             self.memory.add("draft", draft)
 
         if (s_from <= 3):
@@ -86,13 +62,16 @@ class Agent:
                 return draft
             elif (assessment == "revision_needed"):
                 print(f"Retry depth: {depth} | revising draft")
-                return self.run(topic, s_from=3, depth=depth+1, max_depth=max_depth)
+                feedback = review.get("specific_feedback", "")
+                self.memory.add("review_feedback", feedback)
+                return self.run(topic, s_from=2, depth=depth+1, max_depth=max_depth)
             elif (assessment == "research_insufficient"):
                 print(f"Retry depth: {depth} | expanding research")
-                feedback = review.get("feedback", "")
+                feedback = review.get("specific_feedback", "")
                 if researched_info is None:
                     researched_info = self.memory.get("researched_info")
                 expanded_research = self.researcher.expand_research(topic, plan, researched_info, feedback)
 
                 self.memory.add("researched_info", expanded_research)
+                self.memory.add("review_feedback", None)
                 return self.run(topic, s_from=2, depth=depth+1, max_depth=max_depth)

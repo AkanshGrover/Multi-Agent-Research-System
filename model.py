@@ -13,7 +13,7 @@ def call_llm(system_prompt, user_prompt, temperature = 0.7):
     
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.1-flash-lite-preview",
             contents=full_prompt,
             config={
                 "temperature": temperature
@@ -23,3 +23,6 @@ def call_llm(system_prompt, user_prompt, temperature = 0.7):
     except Exception as e:
         print("LLM call failed for some reason", e)
         return None
+
+#gemini-2.5-flash-lite
+#gemini-2.5-flash
