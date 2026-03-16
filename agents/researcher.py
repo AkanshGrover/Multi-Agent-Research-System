@@ -129,6 +129,12 @@ You must carefully analyze the data and identify:
 You must NOT invent information that does not exist in the data.
 
 Focus on extracting insights supported by the research sources.
+
+Also extract relevant web sources from the research data such as
+technical articles, documentation pages, GitHub repositories,
+or high-quality engineering discussions.
+
+Include them in "web_sources".
 """
 
         user_prompt = f"""
@@ -168,6 +174,13 @@ Return a structured JSON object:
      "limitations": ""
    }}
  ],
+
+ "web_sources": [
+   {{
+     "title": "",
+     "url": "",
+     "source_type": "news | blog | documentation | tutorial"
+   }}
 
  "methodologies": [],
 

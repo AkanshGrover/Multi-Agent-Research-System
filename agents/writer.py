@@ -179,10 +179,11 @@ class Writer:
 
     def build_references(self, researched_info):
         references = []
+        ref_id = 1
 
         papers = researched_info.get("literature_sources", [])
 
-        for i, paper in enumerate(papers, start=1):
+        for  paper in papers:
 
             title = paper.get("title", "Unknown Title")
             authors = paper.get("authors", [])
@@ -191,8 +192,34 @@ class Writer:
             if isinstance(authors, list):
                 authors = ", ".join(authors)
 
-            ref = f"[{i}] {authors} ({year}). {title}."
+            ref = f"[{ref_id}] {authors} ({year}). {title}."
             references.append(ref)
+
+            ref_id += 1
+
+            websites = researched_info.get("web_sources", [])
+
+        for site in websites:
+        
+            title = site.get("title", "Website Source")
+            url = site.get("url", "")
+        
+            ref = f"[{ref_id}] {title}. Available: {url}"
+            references.append(ref)
+        
+            ref_id += 1
+
+        docs = researched_info.get("docs_sources", [])
+
+        for doc in docs:
+
+            title = doc.get("title", "Documentation")
+            url = doc.get("url", "")
+
+            ref = f"[{ref_id}] {title}. Available: {url}"
+            references.append(ref)
+
+            ref_id += 1
 
         if not references:
             references.append("[1] No explicit references were available from the analyzed research sources.")
