@@ -182,6 +182,8 @@ class Writer:
         ref_id = 1
 
         papers = researched_info.get("literature_sources", [])
+        websites = researched_info.get("web_sources", [])
+        docs = researched_info.get("docs_sources", [])
 
         for  paper in papers:
 
@@ -197,7 +199,6 @@ class Writer:
 
             ref_id += 1
 
-            websites = researched_info.get("web_sources", [])
 
         for site in websites:
         
@@ -209,7 +210,6 @@ class Writer:
         
             ref_id += 1
 
-        docs = researched_info.get("docs_sources", [])
 
         for doc in docs:
 

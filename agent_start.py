@@ -3,7 +3,10 @@ from agents.researcher import Researcher
 from agents.writer import Writer
 from agents.reviewer import Reviewer
 
-from memory import Memory #rn this is used for logging purposes
+from memory import Memory
+
+import json
+from pathlib import Path
 
 class Agent:
     def __init__(self):
@@ -12,6 +15,18 @@ class Agent:
         self.researcher = Researcher()
         self.writer = Writer()
         self.reflection = Reviewer()
+
+        self.log_dir = Path("logs")
+        for item in self.log_dir.iterdir():
+            if item.is_file():
+                item.unlink()
+            elif item.is_dir():
+                import shutil
+                shutil.rmtree(item)
+
+    def log(self, what, info):
+        with open(f"{self.log_dir}/{what}_log.json", "w") as f:
+            json.dump(info, f, indent=2, ensure_ascii=False, default=str)
 
     def run(self, topic, s_from=0, depth=0, max_depth=5):
         if depth >= max_depth:
@@ -27,32 +42,40 @@ class Agent:
         if (s_from <= 0):
             plan = self.planner.create_plan(topic)
             self.memory.add("plan", plan)
+            self.log("plan", plan)
 
         if (s_from <= 1):
             if plan is None:
                 plan = self.memory.get("plan")
+                self.log("plan", plan)
                 if plan is None:
                     raise ValueError("Planner failed to produce plan")
             researched_info = self.researcher.gather_research(topic, plan)
             self.memory.add("researched_info", researched_info)
+            self.log("researched_info", researched_info)
 
         if (s_from <= 2):
             if plan is None:
                 plan = self.memory.get("plan")
+                self.log("plan", plan)
                 if plan is None:
                     raise ValueError("Planner failed to produce plan")
             if researched_info is None:
                 researched_info = self.memory.get("researched_info")
+                self.log("researched_info", researched_info)
                 if researched_info is None:
                     raise ValueError("Planner failed to produce researched_info")
             feedback = self.memory.get("review_feedback")
-            draft = self.writer.write_paper(topic, plan, researched_info, feedback)
+            self.log("review_feedback", feedback)
 
+            draft = self.writer.write_paper(topic, plan, researched_info, feedback)
             self.memory.add("draft", draft)
+            self.log("draft", draft)
 
         if (s_from <= 3):
             review = self.reflection.review_paper(topic, plan, researched_info, draft)
             self.memory.add("review", review)
+            self.log("review", review)
 
             if not review or "overall_assessment" not in review:
                 return "Reviewer failed to produce valid output"
@@ -64,14 +87,17 @@ class Agent:
                 print(f"Retry depth: {depth} | revising draft")
                 feedback = review.get("specific_feedback", "")
                 self.memory.add("review_feedback", feedback)
+                self.log("review_feedback", feedback)
                 return self.run(topic, s_from=2, depth=depth+1, max_depth=max_depth)
             elif (assessment == "research_insufficient"):
                 print(f"Retry depth: {depth} | expanding research")
                 feedback = review.get("specific_feedback", "")
+                self.log("review_feedback", feedback)
                 if researched_info is None:
                     researched_info = self.memory.get("researched_info")
                 expanded_research = self.researcher.expand_research(topic, plan, researched_info, feedback)
 
                 self.memory.add("researched_info", expanded_research)
+                self.log("researched_info", expanded_research)
                 self.memory.add("review_feedback", None)
                 return self.run(topic, s_from=2, depth=depth+1, max_depth=max_depth)
