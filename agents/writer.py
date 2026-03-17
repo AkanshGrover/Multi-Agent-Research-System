@@ -183,6 +183,12 @@ class Writer:
 
         papers = researched_info.get("literature_sources", [])
 
+        websites = researched_info.get("web_sources", [])
+
+        docs = researched_info.get("docs_sources", [])
+
+        raw_papers = researched_info.get("raw_arxiv", [])
+
         for  paper in papers:
 
             title = paper.get("title", "Unknown Title")
@@ -197,7 +203,6 @@ class Writer:
 
             ref_id += 1
 
-            websites = researched_info.get("web_sources", [])
 
         for site in websites:
         
@@ -209,7 +214,6 @@ class Writer:
         
             ref_id += 1
 
-        docs = researched_info.get("docs_sources", [])
 
         for doc in docs:
 
@@ -219,6 +223,16 @@ class Writer:
             ref = f"[{ref_id}] {title}. Available: {url}"
             references.append(ref)
 
+            ref_id += 1
+
+        for paper in raw_papers[:20]:
+            authors = ", ".join(paper.get("authors", [])[:3])
+            year = str(paper.get("published", ""))[:4]
+            title = paper.get("title", "Unknown Title")
+            pdf = paper.get("pdf_url", "")
+
+            ref = f"[{ref_id}] {authors} ({year}). {title}. arXiv. Available: {pdf}"
+            references.append(ref)
             ref_id += 1
 
         if not references:
@@ -255,6 +269,12 @@ Your writing must:
 • provide technical depth suitable for a research audience
 
 Use citation numbers like [1], [2], [3] when referring to sources.
+
+STRICT CITATION RULES:
+
+• Claims without citation are NOT allowed
+• Use ONLY provided references
+• Prefer citing arXiv papers over web sources
 
 Do NOT hallucinate papers or citations.
 

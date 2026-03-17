@@ -28,12 +28,23 @@ class Researcher:
         try:
             synthesized = self.synthesize_research(topic, plan, summarized_data)
 
+            if "literature_sources" not in synthesized:
+                synthesized["literature_sources"] = []
+
+            if "web_sources" not in synthesized:
+                synthesized["web_sources"] = []
+
             synthesized["metadata"] = {
                 "research_attempt": self.research_attempts,
                 "github_page": self.github_page,
                 "stackoverflow_page": self.so_page,
                 "timestamp": datetime.now().isoformat()
             }
+
+            synthesized["raw_arxiv"] = summarized_data.get("raw_arxiv", [])
+            synthesized["tech_news"] = summarized_data.get("tech_news", [])
+            synthesized["github_projects"] = summarized_data.get("github_projects", [])
+
 
             return synthesized
         
@@ -57,6 +68,7 @@ class Researcher:
     def prepare_data_summary(self, data):
         summary = {
             "arxiv_papers": [],
+            "raw_arxiv": [],
             "tech_news": [],
             "github_projects": [],
             "stackoverflow_questions": [],
@@ -64,7 +76,7 @@ class Researcher:
         }
 
         # limit arxiv
-        for paper in data["static_sources"]["sources"]["arxiv"][:5]:
+        for paper in data["static_sources"]["sources"]["arxiv"][:20]:
 
             summary["arxiv_papers"].append({
                 "title": paper["title"],
@@ -74,8 +86,10 @@ class Researcher:
                 "relevance_score": paper["relevance_score"]
             })
 
+        summary["raw_arxiv"] = data["static_sources"]["sources"]["arxiv"][:30]
+
         # hackernews
-        for post in data["static_sources"]["sources"]["hackernews"][:5]:
+        for post in data["static_sources"]["sources"]["hackernews"][:10]:
 
             summary["tech_news"].append({
                 "title": post["title"],
@@ -85,7 +99,7 @@ class Researcher:
             })
 
         # github
-        for repo in data["realtime_sources"]["sources"]["github"][:5]:
+        for repo in data["realtime_sources"]["sources"]["github"][:10]:
 
             summary["github_projects"].append({
                 "name": repo["name"],
@@ -95,7 +109,7 @@ class Researcher:
             })
 
         # stackoverflow
-        for q in data["realtime_sources"]["sources"]["stackoverflow"][:5]:
+        for q in data["realtime_sources"]["sources"]["stackoverflow"][:10]:
 
             summary["stackoverflow_questions"].append({
                 "title": q["title"],
@@ -135,6 +149,20 @@ technical articles, documentation pages, GitHub repositories,
 or high-quality engineering discussions.
 
 Include them in "web_sources".
+
+You MUST extract literature sources from the provided arXiv papers.
+
+Every arXiv paper in the research data should appear in "literature_sources".
+
+For each paper include:
+• title
+• authors
+• year
+• main_contribution
+• methodology
+• limitations
+
+If arXiv papers are present in the data, "literature_sources" MUST NOT be empty.
 """
 
         user_prompt = f"""
@@ -149,6 +177,16 @@ RESEARCH PLAN
 RAW RESEARCH DATA
 {json.dumps(data, indent=2)}
 
+
+IMPORTANT DATA STRUCTURE
+
+arxiv_papers:
+Short summaries of arXiv research papers.
+
+raw_arxiv:
+Full metadata of arXiv papers including authors and URLs.
+
+You MUST use these to populate the "literature_sources" list.
 
 TASK
 
@@ -181,6 +219,7 @@ Return a structured JSON object:
      "url": "",
      "source_type": "news | blog | documentation | tutorial"
    }}
+ ],
 
  "methodologies": [],
 

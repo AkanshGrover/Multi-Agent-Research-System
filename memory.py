@@ -1,4 +1,3 @@
-#basic code, gonna be replaced in future
 class Memory:
     def __init__(self):
         self.history = {}
