@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
-import requests, arxiv
+import requests, arxiv, re
 
 class InfoFetcher:
     def __init__(self):
+        self.session = requests.Session()
         self.cs_categories = [
             'cs.AI',      # Artificial Intelligence
             'cs.CC',      # Computational Complexity
@@ -62,13 +63,16 @@ class InfoFetcher:
             'big data', 'analytics', 'visualization', 'user interface', 'ux', 'ui'
         ]
 
+    def tokenize(self, text):
+        return set(re.findall(r'\w+', text.lower()))
+
     def is_cs_topic(self, topic):
         topic = topic.lower()
         return any(keyword in topic for keyword in self.cs_keywords)#returns true if any word of topic existis in the cs_keywords
 
-    def calculate_relevance(self, topic, title, text):#just checks whether the info gayjered is apt for the stuff we need it for
-        topic_words = set(topic.lower().split())
-        content_words = set((title + " " + text).lower().split())
+    def calculate_relevance(self, topic, title, content):#just checks whether the info gayjered is apt for the stuff we need it for
+        topic_words = self.tokenize(topic)
+        content_words = self.tokenize(title + " " + content)
 
         if not topic_words:
             return 0.0
@@ -77,7 +81,7 @@ class InfoFetcher:
 
         score = overlap / len(topic_words)
 
-        if topic.lower() in (title + " " + text).lower():
+        if topic.lower() in (title + " " + content).lower():
             score += 0.3
 
         return min(score, 1.0)
@@ -94,7 +98,7 @@ class InfoFetcher:
         posts = []
 
         try:
-            response = requests.get(url, params=params, timeout=10)
+            response = self.session.get(url, params=params, timeout=10)
             response.raise_for_status()
             
             data = response.json()
@@ -116,17 +120,25 @@ class InfoFetcher:
 
         return posts
 
-    def fetch_arxiv(self, topic, limit = 20):
+    def fetch_arxiv(self, topic, limit = 40, offset = 0):
         search = arxiv.Search(
-            query=topic,
-            max_results=limit,
+            query=f"all:{topic}",
+            max_results=limit + offset,
             sort_by=arxiv.SortCriterion.SubmittedDate
         )
 
         papers = []
 
+        client = arxiv.Client()
+
         try:
-            for paper in search.results():
+            for idx, paper in enumerate(client.results(search)):
+
+                if (idx < offset):
+                    continue
+
+                if idx >= offset + limit:
+                    break
 
                 if not any(cat in paper.categories for cat in self.cs_categories):#checks whether the category is present in your defined list ofceategories
                     continue
@@ -136,6 +148,8 @@ class InfoFetcher:
                     "authors": [a.name for a in paper.authors],
                     "abstract": paper.summary,
                     "published": paper.published,
+                    'updated': paper.updated,
+                    'categories': paper.categories,
                     "url": paper.entry_id,
                     "pdf_url": paper.pdf_url,
                     "source": "arxiv",
@@ -212,3 +226,12 @@ class InfoFetcher:
         }
 
         return results
+    
+# if __name__ == "__main__":
+#     fetcher = InfoFetcher()
+
+#     topic = "Retrieval-Augmented Generation in Large Language Models"
+#     results = fetcher.fetch_all(topic)
+#     a = (results["sources"])["arxiv"]
+#     for i in a:
+#         print(i["title"])
